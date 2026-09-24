@@ -100,7 +100,7 @@ namespace DistrictPlanner
             }
             catch (Exception e)
             {
-                Plugin.Log.LogError($"EvaluateDistrictPlacement postfix failed: {e}");
+                Guard.Fail(typeof(PlacementEvaluationPatch), e);
             }
         }
 

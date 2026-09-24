@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>DistrictPlanner</AssemblyName>
     <!-- The one place to bump the version: also the BepInEx plugin version (BuildInfo.Version) and the release zip name. -->
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <RootNamespace>DistrictPlanner</RootNamespace>
     <!-- Endless Legend 2 runs Unity 6000.3 on Mono with the .NET 4.x profile. -->
     <TargetFramework>net472</TargetFramework>

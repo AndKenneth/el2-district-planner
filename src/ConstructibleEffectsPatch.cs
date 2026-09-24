@@ -129,7 +129,7 @@ namespace DistrictPlanner
             }
             catch (Exception e)
             {
-                Plugin.Log.LogError("Tooltip highlight failed: " + e);
+                Guard.Fail(typeof(ConstructibleEffectsPatch), e);
             }
         }
 

@@ -16,6 +16,18 @@ namespace DistrictPlanner
         // Runs after TileOutlinePatch's prefix, so these are its filtered arguments.
         private static void Postfix(DistrictPlacementTileFeedback __instance, DistrictPlacementEvaluation.ValidTile[] validTiles, int selectedValidTileIndex)
         {
+            try
+            {
+                Apply(__instance, validTiles, selectedValidTileIndex);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(SynergyHighlightPatch), e);
+            }
+        }
+
+        private static void Apply(DistrictPlacementTileFeedback __instance, DistrictPlacementEvaluation.ValidTile[] validTiles, int selectedValidTileIndex)
+        {
             if (validTiles == null || selectedValidTileIndex < 0 || selectedValidTileIndex >= validTiles.Length
                 || !Enum.TryParse(Plugin.SynergyTileHighlight.Value, out PresentationEntityLevelBuildEnums.TileFeedback feedback))
             {

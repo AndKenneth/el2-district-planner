@@ -18,6 +18,18 @@ namespace DistrictPlanner
     {
         private static void Postfix(PlacementPin __instance)
         {
+            try
+            {
+                Apply(__instance);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(PlacementPinPatch), e);
+            }
+        }
+
+        private static void Apply(PlacementPin __instance)
+        {
             if (!Plugin.ShowSynergyOnPins.Value || __instance.dataIndex < 0 || !(__instance.PinsSubset is DistrictPlacementPinsSubset))
             {
                 return;
@@ -144,6 +156,18 @@ namespace DistrictPlanner
     internal static class PlacementPinHoverPatch
     {
         private static void Postfix(PlacementPin __instance)
+        {
+            try
+            {
+                Apply(__instance);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(PlacementPinHoverPatch), e);
+            }
+        }
+
+        private static void Apply(PlacementPin __instance)
         {
             if (!Plugin.ShowSynergyOnPins.Value || __instance.dataIndex < 0 || !(__instance.PinsSubset is DistrictPlacementPinsSubset))
             {

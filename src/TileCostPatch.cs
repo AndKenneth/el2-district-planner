@@ -14,6 +14,18 @@ namespace DistrictPlanner
     {
         private static void Postfix(PresentationFimsController __instance)
         {
+            try
+            {
+                Apply(__instance);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(TileCostPatch), e);
+            }
+        }
+
+        private static void Apply(PresentationFimsController __instance)
+        {
             if (!Plugin.ShowBuyCostOnTiles.Value || __instance.fimsRenderer == null
                 || (__instance.fimsStatus & PresentationFimsController.FimsRendererStatus.DistrictPlacement) == PresentationFimsController.FimsRendererStatus.None
                 || !(Presentation.PresentationCursorController.CurrentCursor is DistrictPlacementCursor))

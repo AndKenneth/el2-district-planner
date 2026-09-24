@@ -14,6 +14,19 @@ namespace DistrictPlanner
 
         private static bool Prefix(int tileIndex, Settlement settlement, DistrictDefinition definitionOverride, ref int __result)
         {
+            try
+            {
+                return Apply(tileIndex, settlement, definitionOverride, ref __result);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(LevelUpWeightPatch), e);
+                return true;
+            }
+        }
+
+        private static bool Apply(int tileIndex, Settlement settlement, DistrictDefinition definitionOverride, ref int __result)
+        {
             if (tileIndex != SimulatedDistrictAt || definitionOverride == null)
             {
                 return true;

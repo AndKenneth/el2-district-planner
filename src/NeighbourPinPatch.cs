@@ -43,6 +43,18 @@ namespace DistrictPlanner
     {
         private static void Postfix(DistrictLevelUpPreviewPinsSubset __instance, int dataIndex, ref bool __result)
         {
+            try
+            {
+                Apply(__instance, dataIndex, ref __result);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(NeighbourPinRelevancePatch), e);
+            }
+        }
+
+        private static void Apply(DistrictLevelUpPreviewPinsSubset __instance, int dataIndex, ref bool __result)
+        {
             if (__result || !Plugin.ShowNeighbourGains.Value)
             {
                 return;
@@ -57,6 +69,18 @@ namespace DistrictPlanner
     internal static class NeighbourPinTextPatch
     {
         private static void Postfix(int ___dataIndex, DistrictLevelUpPreviewPinsSubset ___districtLevelUpPreviewPinsSubset, UILabel ___levelUpLabel)
+        {
+            try
+            {
+                Apply(___dataIndex, ___districtLevelUpPreviewPinsSubset, ___levelUpLabel);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(NeighbourPinTextPatch), e);
+            }
+        }
+
+        private static void Apply(int ___dataIndex, DistrictLevelUpPreviewPinsSubset ___districtLevelUpPreviewPinsSubset, UILabel ___levelUpLabel)
         {
             if (!Plugin.ShowNeighbourGains.Value || ___dataIndex < 0 || ___districtLevelUpPreviewPinsSubset == null)
             {

@@ -13,6 +13,18 @@ namespace DistrictPlanner
     {
         private static void Prefix(RequestDistrictPlacementBreakdown request)
         {
+            try
+            {
+                Apply(request);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(PlacementBreakdownPatch), e);
+            }
+        }
+
+        private static void Apply(RequestDistrictPlacementBreakdown request)
+        {
             if (request != null && request.ExtensionDefinition.ToString() == PlacementDetails.DistrictName
                 && PlacementDetails.TryGet(request.TileIndex, out var details) && details.Offer.HasValue)
             {

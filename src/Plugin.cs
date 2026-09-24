@@ -105,18 +105,30 @@ namespace DistrictPlanner
             Config.SettingChanged += (sender, args) => ReevaluateOpenPlacement();
 
             harmony = new Harmony(Guid);
-            PatchEach();
-            Log.LogInfo($"District Planner {Version} loaded (game {Application.version}, Steam build {SteamBuildId()}, {FailedPatches.Count} patches failed)");
-            ReevaluateOpenPlacement();
+            if (GameDataReady())
+            {
+                PatchAll();
+            }
+            else
+            {
+                Log.LogInfo($"District Planner {Version} waiting for game data before patching");
+            }
         }
 
-        // Patch classes whose target could not be patched, e.g. renamed by a game update.
+        // Patch classes whose target could not be patched, e.g. renamed by a game update, or that threw (Guard).
         internal static readonly System.Collections.Generic.HashSet<System.Type> FailedPatches = new System.Collections.Generic.HashSet<System.Type>();
 
-        // One patch class at a time, unlike PatchAll, which stops at the first failure: a game update that breaks one
-        // patch then only disables that feature, and the log names it.
-        private void PatchEach()
+        private bool patched;
+
+        // Patching a method makes Mono run its class's static constructor. If that constructor reads game data that
+        // isn't loaded yet, it throws and the class stays broken for the rest of the session, so the game fails with
+        // "Unexpected error" (ConstructibleHelper from build 25488140 on). The mod does nothing before a game is loaded
+        // anyway: patch only once the game data is there.
+        // One patch class at a time, unlike Harmony.PatchAll, which stops at the first failure: a game update that
+        // breaks one patch then only disables that feature, and the log names it.
+        private void PatchAll()
         {
+            patched = true;
             foreach (var type in AccessTools.GetTypesFromAssembly(typeof(Plugin).Assembly))
             {
                 if (type.GetCustomAttributes(typeof(HarmonyPatch), false).Length == 0)
@@ -132,6 +144,23 @@ namespace DistrictPlanner
                     FailedPatches.Add(type);
                     Log.LogError($"Could not patch {type.Name}, its feature is off (game update?): {e.GetBaseException().Message}");
                 }
+            }
+            Log.LogInfo($"District Planner {Version} loaded (game {Application.version}, Steam build {SteamBuildId()}, {FailedPatches.Count} patches failed)");
+            ReevaluateOpenPlacement();
+        }
+
+        // What patched classes' static constructors read: the game's UI mappers (ConstructibleHelper.DefaultNeighborsName).
+        private static bool GameDataReady()
+        {
+            try
+            {
+                return Amplitude.Mercury.Utils.DataUtils?.EnumUIMappers != null
+                    && Amplitude.Mercury.Utils.DataUtils.EnumUIMappers.TryGetEnumUIMapper(Amplitude.Mercury.Data.World.UITileType.District, out var mapper)
+                    && mapper != null;
+            }
+            catch (System.Exception)
+            {
+                return false;
             }
         }
 
@@ -174,6 +203,15 @@ namespace DistrictPlanner
             {
                 Log.LogInfo("Dump requested");
                 DumpCommand.Request();
+            }
+            if (!patched && GameDataReady())
+            {
+                PatchAll();
+            }
+            if (Guard.UnpatchFailed(harmony))
+            {
+                // A failed evaluation patch may have left the open placement half rescored.
+                ReevaluateOpenPlacement();
             }
 #if DEBUG
             if (Time.unscaledTime >= nextReloadCheck)

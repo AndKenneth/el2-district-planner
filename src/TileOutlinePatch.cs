@@ -15,6 +15,18 @@ namespace DistrictPlanner
 
         private static void Prefix(ref DistrictPlacementEvaluation.ValidTile[] validTiles, ref int validTilesCount, ref int selectedValidTileIndex)
         {
+            try
+            {
+                Apply(ref validTiles, ref validTilesCount, ref selectedValidTileIndex);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(TileOutlinePatch), e);
+            }
+        }
+
+        private static void Apply(ref DistrictPlacementEvaluation.ValidTile[] validTiles, ref int validTilesCount, ref int selectedValidTileIndex)
+        {
             if (validTiles == null)
             {
                 return;

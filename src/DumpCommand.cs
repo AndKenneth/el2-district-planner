@@ -26,6 +26,18 @@ namespace DistrictPlanner
 
         private static void Postfix()
         {
+            try
+            {
+                Apply();
+            }
+            catch (Exception e)
+            {
+                Guard.Fail(typeof(DumpCommand), e);
+            }
+        }
+
+        private static void Apply()
+        {
             if (DateTime.UtcNow >= nextTriggerCheck)
             {
                 nextTriggerCheck = DateTime.UtcNow.AddSeconds(1);

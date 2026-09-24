@@ -15,6 +15,19 @@ namespace DistrictPlanner
     {
         private static bool Prefix(DistrictPlacementCursor __instance, MouseButton mouseButton)
         {
+            try
+            {
+                return Apply(__instance, mouseButton);
+            }
+            catch (System.Exception e)
+            {
+                Guard.Fail(typeof(PlacementClickPatch), e);
+                return true;
+            }
+        }
+
+        private static bool Apply(DistrictPlacementCursor __instance, MouseButton mouseButton)
+        {
             if (mouseButton != MouseButton.Left || GodMode.Enabled || !__instance.isCurrentPositionValid
                 || !PlacementDetails.TryGet(__instance.currentPosition, out var details) || !(details.Offer is BuyablePlacement.Offer offer))
             {
