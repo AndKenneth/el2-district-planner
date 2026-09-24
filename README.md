@@ -77,3 +77,5 @@ dotnet build -c Release -p:GameDir="<path to ENDLESS Legend 2>"
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+Amplitude Studios, and any publisher or rights holder of ENDLESS Legend 2, may also use this work without the MIT conditions. That includes building these features straight into ENDLESS Legend 2 or a future game, with no attribution, notice or payment required. The full grant is at the end of [LICENSE](LICENSE).
