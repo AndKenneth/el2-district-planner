@@ -23,10 +23,10 @@ namespace DistrictPlanner
             // Neighbour tiles merged into this entry, e.g. 3 for "+6 from River x3".
             public int Count;
 
+            // What the yield is for: "(Tile)" for an on-tile bonus, else the source's name.
             public string Text => Direction == Direction.OnTile
-                ? Plugin.TextOnTile.Value
-                : (Direction == Direction.From ? Plugin.TextFrom.Value : Plugin.TextTo.Value) + " " + SourceNames.Localize(Definition)
-                    + (Count > 1 ? " \u00d7" + Count : "");
+                ? "(" + Words.Tile + ")"
+                : SourceNames.Localize(Definition) + (Count > 1 ? " \u00d7" + Count : "");
         }
 
         public FitScore Score;

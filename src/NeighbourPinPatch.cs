@@ -34,7 +34,7 @@ namespace DistrictPlanner
             {
                 return string.Empty;
             }
-            return neighbour.WillRaiseFoundation ? Plugin.TextFoundation.Value + " " + yields : yields;
+            return neighbour.WillRaiseFoundation ? Words.Foundation + " " + yields : yields;
         }
     }
 

@@ -123,8 +123,7 @@ namespace DistrictPlanner
                 if (details.Offer is BuyablePlacement.Offer offer)
                 {
                     string cost = Utils.FormatUtils.Cost.Format(offer.InfluenceCost, UIResourceType.Influence, offer.Affordable);
-                    text = Utils.TextUtils.StartLocalize("%ConstructionMenu_HoverConstructibleFoundation").AddParam(cost).Translate("Foundation Cost: {0}")
-                        + "\n\n" + text;
+                    text = Words.FoundationCost(cost) + "\n\n" + text;
                 }
                 __instance.description.Text = text;
             }

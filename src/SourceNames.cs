@@ -48,7 +48,7 @@ namespace DistrictPlanner
             }
             if (definitionName.StartsWith(QueuedPrefix))
             {
-                name = Localize(definitionName.Substring(QueuedPrefix.Length)) + " (" + Plugin.TextQueued.Value + ")";
+                name = Localize(definitionName.Substring(QueuedPrefix.Length)) + " (" + Words.ConstructionQueue + ")";
                 LocalizedByDefinition[definitionName] = name;
                 return name;
             }

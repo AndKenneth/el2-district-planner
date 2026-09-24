@@ -32,15 +32,8 @@ namespace DistrictPlanner
         internal static ConfigEntry<bool> SplitHoverEffects;
         internal static ConfigEntry<int> CollapseRadius;
         internal static ConfigEntry<bool> CountQueuedConstructions;
-        internal static ConfigEntry<string> TextQueued;
         internal static ConfigEntry<string> SynergyTileHighlight;
-        internal static ConfigEntry<string> TextFrom;
-        internal static ConfigEntry<string> TextTo;
-        internal static ConfigEntry<string> TextOnTile;
-        internal static ConfigEntry<string> TextBuyTitle;
         internal static ConfigEntry<string> TextBuyQuestion;
-        internal static ConfigEntry<string> TextCannotAfford;
-        internal static ConfigEntry<string> TextFoundation;
         internal static ConfigEntry<bool> LogEvaluations;
         internal static ConfigEntry<bool> DumpEvaluations;
         internal static ConfigEntry<KeyboardShortcut> DumpKey;
@@ -96,18 +89,10 @@ namespace DistrictPlanner
                 "Tile highlight drawn on neighbours that give or gain synergy while a tile is hovered (a game TileFeedback name, e.g. ConstructibleTileHover); empty to disable.",
                 advanced: true);
 
-            // Place and district names come from the game's localization; these words have no game key.
-            TextFrom = Bind(text, "From", "from", "Synergy received from a neighbour, before its name.", advanced: true);
-            TextTo = Bind(text, "To", "to", "Synergy given to a neighbour, before its name.", advanced: true);
-            TextOnTile = Bind(text, "OnTile", "on tile", "Bonus for what the district sits on.", advanced: true);
-            TextQueued = Bind(text, "Queued", "queued", "After the name of a district that is still in a construction queue.", advanced: true);
-            TextFoundation = Bind(text, "Foundation", "Foundation", "Neighbour label: Foundation raised on this empty neighbour.", advanced: true);
-            TextBuyTitle = Bind(text, "BuyTitle", "Buy Foundation", "Title of the confirmation when placing on a buyable tile.", advanced: true);
-            TextBuyQuestion = Bind(text, "BuyConfirmation",
-                "Buy a Foundation on this tile for {0} and place the district there? The Foundation is bought right away: if you cancel the district, it stays and the Influence is not refunded.",
-                "Confirmation text; {0} is the Influence cost.", advanced: true);
-            TextCannotAfford = Bind(text, "CannotAfford", "Not enough Influence to buy a Foundation here ({0}).",
-                "Shown when clicking a buyable tile you cannot afford; {0} is the cost.", advanced: true);
+            // Every other word comes from the game's own translations (Words); it has none for this question.
+            TextBuyQuestion = Bind(text, "BuyQuestion", "",
+                "Replaces the question asked when clicking a buyable tile; {0} is the Influence cost. Empty: the built-in wording in the game's language.",
+                advanced: true);
 
             LogEvaluations = Bind(debug, "LogEvaluations", false,
                 "Log each placement evaluation's best tiles, scores and timing to LogOutput.log.", advanced: true);
@@ -120,9 +105,49 @@ namespace DistrictPlanner
             Config.SettingChanged += (sender, args) => ReevaluateOpenPlacement();
 
             harmony = new Harmony(Guid);
-            harmony.PatchAll(typeof(Plugin).Assembly);
-            Log.LogInfo("District Planner loaded");
+            PatchEach();
+            Log.LogInfo($"District Planner {Version} loaded (game {Application.version}, Steam build {SteamBuildId()}, {FailedPatches.Count} patches failed)");
             ReevaluateOpenPlacement();
+        }
+
+        // Patch classes whose target could not be patched, e.g. renamed by a game update.
+        internal static readonly System.Collections.Generic.HashSet<System.Type> FailedPatches = new System.Collections.Generic.HashSet<System.Type>();
+
+        // One patch class at a time, unlike PatchAll, which stops at the first failure: a game update that breaks one
+        // patch then only disables that feature, and the log names it.
+        private void PatchEach()
+        {
+            foreach (var type in AccessTools.GetTypesFromAssembly(typeof(Plugin).Assembly))
+            {
+                if (type.GetCustomAttributes(typeof(HarmonyPatch), false).Length == 0)
+                {
+                    continue;
+                }
+                try
+                {
+                    harmony.CreateClassProcessor(type).Patch();
+                }
+                catch (System.Exception e)
+                {
+                    FailedPatches.Add(type);
+                    Log.LogError($"Could not patch {type.Name}, its feature is off (game update?): {e.GetBaseException().Message}");
+                }
+            }
+        }
+
+        // The game's Steam build, to tell game updates apart (the Unity version string rarely changes).
+        private static string SteamBuildId()
+        {
+            try
+            {
+                string manifest = System.IO.Path.Combine(Paths.GameRootPath, "..", "..", "appmanifest_3407390.acf");
+                var match = System.Text.RegularExpressions.Regex.Match(System.IO.File.ReadAllText(manifest), "\"buildid\"\\s+\"(\\d+)\"");
+                return match.Success ? match.Groups[1].Value : "unknown";
+            }
+            catch (System.Exception)
+            {
+                return "unknown";
+            }
         }
 
         private int order;
@@ -155,6 +180,7 @@ namespace DistrictPlanner
             {
                 nextReloadCheck = Time.unscaledTime + 1f;
                 CheckReloadRequest();
+                LocalizationDump.CheckRequest();
             }
 #endif
         }

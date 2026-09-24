@@ -26,8 +26,8 @@ namespace DistrictPlanner
             {
                 MessageModalWindow.ShowMessage(new MessageModalWindow.Message
                 {
-                    Title = Plugin.TextBuyTitle.Value,
-                    Description = string.Format(Plugin.TextCannotAfford.Value, cost),
+                    Title = Words.BuyTitle,
+                    Description = Words.CannotAfford(cost),
                     Buttons = new[] { new MessageBoxButton.Data(MessageBox.Choice.Ok, null, isDismiss: true) },
                 });
                 return false;
@@ -37,8 +37,8 @@ namespace DistrictPlanner
             var settlementGuid = __instance.SettlementGUID;
             MessageModalWindow.ShowMessage(new MessageModalWindow.Message
             {
-                Title = Plugin.TextBuyTitle.Value,
-                Description = string.Format(Plugin.TextBuyQuestion.Value, cost),
+                Title = Words.BuyTitle,
+                Description = Words.BuyQuestion(cost),
                 Buttons = new[]
                 {
                     new MessageBoxButton.Data(MessageBox.Choice.No, null, isDismiss: true),

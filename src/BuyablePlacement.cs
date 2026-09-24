@@ -30,7 +30,8 @@ namespace DistrictPlanner
         {
             var offers = new Dictionary<int, Offer>();
             int max = Plugin.BuyableMaxRecommended.Value;
-            if (!Plugin.OfferBuyableTiles.Value || eval.ValidTileCount == 0
+            // Without the click patch, a click on a buyable tile would ask the game to place the district without a Foundation.
+            if (!Plugin.OfferBuyableTiles.Value || Plugin.FailedPatches.Contains(typeof(PlacementClickPatch)) || eval.ValidTileCount == 0
                 || !Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.TryGetSimulationEntity(settlementGuid, out Settlement settlement))
             {
                 return offers;
