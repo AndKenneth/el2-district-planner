@@ -1,0 +1,93 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>DistrictPlanner</AssemblyName>
+    <!-- The one place to bump the version: also the BepInEx plugin version (BuildInfo.Version) and the release zip name. -->
+    <Version>1.0.0</Version>
+    <RootNamespace>DistrictPlanner</RootNamespace>
+    <!-- Endless Legend 2 runs Unity 6000.3 on Mono with the .NET 4.x profile. -->
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>disable</Nullable>
+    <DebugType>portable</DebugType>
+    <!-- Release builds carry no debug symbols or local paths. -->
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+    <PathMap>$(MSBuildProjectDirectory)=.</PathMap>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Only compile src/; decompiled/ holds thousands of game .cs files. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);decompiled/**;scripts/**;.cache/**</DefaultItemExcludes>
+
+    <!-- Override with `dotnet build -p:GameDir=...` if the game lives elsewhere. -->
+    <GameDir Condition="'$(GameDir)' == '' And '$(OS)' == 'Windows_NT'">C:\Program Files (x86)\Steam\steamapps\common\ENDLESS Legend 2</GameDir>
+    <GameDir Condition="'$(GameDir)' == ''">$(HOME)/.local/share/Steam/steamapps/common/ENDLESS Legend 2</GameDir>
+    <ManagedDir>$(GameDir)/Endless Legend 2_Data/Managed</ManagedDir>
+    <BepInExDir>$(GameDir)/BepInEx</BepInExDir>
+    <!-- Compile against the game's BepInEx if installed, else the copy unpacked into .cache. -->
+    <BepInExCoreDir Condition="Exists('$(BepInExDir)/core')">$(BepInExDir)/core</BepInExCoreDir>
+    <BepInExCoreDir Condition="'$(BepInExCoreDir)' == ''">$(MSBuildProjectDirectory)/.cache/bepinex/BepInEx/core</BepInExCoreDir>
+    <!-- Debug builds go here, for BepInEx.Debug ScriptEngine (https://github.com/BepInEx/BepInEx.Debug), which hot-reloads them. -->
+    <PluginDeployDir>$(BepInExDir)/scripts</PluginDeployDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- Compiles against a copy of Firstpass with internals made public; Mono does not enforce access checks at runtime. -->
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Everything below is loaded by the game at runtime; never copy it to the output. -->
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx" HintPath="$(BepInExCoreDir)/BepInEx.dll" />
+    <Reference Include="0Harmony" HintPath="$(BepInExCoreDir)/0Harmony.dll" />
+
+    <Reference Include="UnityEngine" HintPath="$(ManagedDir)/UnityEngine.dll" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedDir)/UnityEngine.CoreModule.dll" />
+    <Reference Include="Sirenix.Serialization" HintPath="$(ManagedDir)/Sirenix.Serialization.dll" />
+    <Reference Include="UnityEngine.InputLegacyModule" HintPath="$(ManagedDir)/UnityEngine.InputLegacyModule.dll" />
+
+    <!-- Simulation (SimulationEvaluator, DistrictPlacementEvaluation) lives in Firstpass; definitions in Data. -->
+    <Reference Include="Assembly-CSharp" HintPath="$(ManagedDir)/Assembly-CSharp.dll" Publicize="true" />
+    <Reference Include="Amplitude.Mercury.Firstpass" HintPath="$(ManagedDir)/Amplitude.Mercury.Firstpass.dll" Publicize="true" />
+    <Reference Include="$(ManagedDir)/Amplitude*.dll" Exclude="$(ManagedDir)/Amplitude.Mercury.Firstpass.dll" />
+  </ItemGroup>
+
+  <!-- Plugin.Version for [BepInPlugin], from <Version> above. -->
+  <Target Name="GenerateBuildInfo" BeforeTargets="CoreCompile">
+    <WriteLinesToFile File="$(IntermediateOutputPath)BuildInfo.g.cs" Overwrite="true" WriteOnlyWhenDifferent="true"
+      Lines="namespace DistrictPlanner { internal static class BuildInfo { public const string Version = &quot;$(Version)&quot;%3B } }" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)BuildInfo.g.cs" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Development: Debug builds go to the game's ScriptEngine folder and hot-reload. -->
+  <Target Name="DeployToGame" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('$(BepInExDir)')">
+    <MakeDir Directories="$(PluginDeployDir)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(PluginDeployDir)" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) -> $(PluginDeployDir)" />
+    <!-- Picked up by Plugin.CheckReloadRequest in a running game, which asks ScriptEngine to hot-reload. -->
+    <MakeDir Directories="$(BepInExDir)/DistrictPlanner" />
+    <Touch Files="$(BepInExDir)/DistrictPlanner/reload.request" AlwaysCreate="true" />
+  </Target>
+
+  <!-- Release: `dotnet build -c Release` writes dist/DistrictPlanner-<version>.zip, laid out to extract into the game folder. -->
+  <Target Name="Package" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <StageDir>$(BaseIntermediateOutputPath)package/</StageDir>
+    </PropertyGroup>
+    <RemoveDir Directories="$(StageDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(StageDir)BepInEx/plugins/DistrictPlanner" />
+    <Copy SourceFiles="README.md;LICENSE" DestinationFolder="$(StageDir)BepInEx/plugins/DistrictPlanner" />
+    <MakeDir Directories="dist" />
+    <ZipDirectory SourceDirectory="$(StageDir)" DestinationFile="dist/DistrictPlanner-$(Version).zip" Overwrite="true" />
+    <Message Importance="high" Text="Packaged dist/DistrictPlanner-$(Version).zip" />
+  </Target>
+
+</Project>
