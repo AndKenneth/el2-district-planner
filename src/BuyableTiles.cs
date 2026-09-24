@@ -74,6 +74,7 @@ namespace DistrictPlanner
                 {
                     LevelUpWeightPatch.SimulatedDistrictAt = -1;
                 }
+                LevelUpCarryOver.Apply(evaluator, ref candidate.Tile, settlement);
                 QueuedConstructions.Apply(evaluator, ref candidate.Tile, district, settlement);
                 result.Add(candidate);
             }

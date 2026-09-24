@@ -38,6 +38,7 @@ namespace DistrictPlanner
                 QueuedConstructions.Gather(settlement);
                 for (int i = 0; settlement != null && i < eval.ValidTileCount; i++)
                 {
+                    LevelUpCarryOver.Apply(__instance, ref eval.ValidTiles[i], settlement);
                     QueuedConstructions.Apply(__instance, ref eval.ValidTiles[i], extension, settlement);
                 }
 
