@@ -88,6 +88,26 @@
     <MakeDir Directories="dist" />
     <ZipDirectory SourceDirectory="$(StageDir)" DestinationFile="dist/DistrictPlanner-$(Version).zip" Overwrite="true" />
     <Message Importance="high" Text="Packaged dist/DistrictPlanner-$(Version).zip" />
+
+    <!-- For players without BepInEx: the same files plus BepInEx itself (MIT), in one zip to extract into the game folder.
+         Built only when the official BepInEx zip is at BundledBepInExZip. -->
+    <PropertyGroup>
+      <BundledBepInExZip Condition="'$(BundledBepInExZip)' == ''">.cache/BepInEx_win_x64_5.4.23.5.zip</BundledBepInExZip>
+      <BundleDir>$(BaseIntermediateOutputPath)bundle/</BundleDir>
+    </PropertyGroup>
+    <ItemGroup Condition="Exists('$(BundledBepInExZip)')">
+      <StagedFile Include="$(StageDir)**/*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(BundleDir)" Condition="Exists('$(BundledBepInExZip)')" />
+    <Unzip SourceFiles="$(BundledBepInExZip)" DestinationFolder="$(BundleDir)" Condition="Exists('$(BundledBepInExZip)')" />
+    <Copy SourceFiles="@(StagedFile)" DestinationFiles="@(StagedFile->'$(BundleDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="Exists('$(BundledBepInExZip)')" />
+    <!-- Licenses of what BepInEx bundles; Doorstop (winhttp.dll) is LGPL-2.1, which requires its text and source link. -->
+    <Error Text="Bundling BepInEx needs .cache/BepInEx-LICENSE.txt and .cache/Doorstop-LICENSE.txt" Condition="Exists('$(BundledBepInExZip)') And (!Exists('.cache/BepInEx-LICENSE.txt') Or !Exists('.cache/Doorstop-LICENSE.txt'))" />
+    <Copy SourceFiles=".cache/BepInEx-LICENSE.txt" DestinationFiles="$(BundleDir)BepInEx/LICENSE-BepInEx.txt" Condition="Exists('$(BundledBepInExZip)')" />
+    <Copy SourceFiles=".cache/Doorstop-LICENSE.txt" DestinationFiles="$(BundleDir)BepInEx/LICENSE-Doorstop.txt" Condition="Exists('$(BundledBepInExZip)')" />
+    <Copy SourceFiles="packaging/THIRD-PARTY-NOTICES.txt" DestinationFolder="$(BundleDir)BepInEx" Condition="Exists('$(BundledBepInExZip)')" />
+    <ZipDirectory SourceDirectory="$(BundleDir)" DestinationFile="dist/DistrictPlanner-$(Version)-with-BepInEx.zip" Overwrite="true" Condition="Exists('$(BundledBepInExZip)')" />
+    <Message Importance="high" Text="Packaged dist/DistrictPlanner-$(Version)-with-BepInEx.zip" Condition="Exists('$(BundledBepInExZip)')" />
   </Target>
 
 </Project>

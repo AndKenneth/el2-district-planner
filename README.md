@@ -15,26 +15,25 @@ When you place a district, the game only recommends the tiles tied for the singl
 
 Everything uses the game's own names and wording, so it works in any language the game supports.
 
-## Requirements
-
-- ENDLESS Legend 2 (Steam)
-- [BepInEx 5.4.23.5 or newer](https://github.com/BepInEx/BepInEx/releases), x64, Mono build. Older 5.x releases don't write their log under Unity 6.
-- Optional: [BepInEx Configuration Manager](https://github.com/BepInEx/BepInEx.ConfigurationManager) (BepInEx 5 build), for an in-game settings window
-
 ## Installation
 
-1. Install BepInEx:
-   1. Extract the BepInEx zip into the game folder, so `winhttp.dll` sits next to `Endless Legend 2.exe`.
-   2. Start the game once and quit. BepInEx creates its folders.
-   3. **Linux / Steam Deck (Proton) only:** set the game's Steam launch options to
+Each [release](../../releases/latest) has two downloads:
 
-      ```
-      WINEDLLOVERRIDES="winhttp=n,b" %command%
-      ```
-2. Download `DistrictPlanner-<version>.zip` from the [Releases](../../releases) page and extract it into the game folder. It adds `BepInEx/plugins/DistrictPlanner/DistrictPlanner.dll`.
-3. Start the game. `BepInEx/LogOutput.log` should contain `District Planner loaded`.
+- **`DistrictPlanner-<version>-with-BepInEx.zip`**: use this if you've never installed a BepInEx mod for ENDLESS Legend 2. It includes [BepInEx](https://github.com/BepInEx/BepInEx) 5.4.23.5, the mod loader.
+- **`DistrictPlanner-<version>.zip`**: the mod on its own, for when BepInEx is already installed (5.4.23.5 or newer, x64, Mono). Older 5.x releases don't write their log under Unity 6.
 
-To uninstall, delete `BepInEx/plugins/DistrictPlanner`.
+1. Open the game folder: in Steam, right-click ENDLESS Legend 2 > Manage > Browse local files. It's the folder with `Endless Legend 2.exe`.
+2. Extract the zip straight into that folder, not into a new subfolder. The mod ends up in `BepInEx/plugins/DistrictPlanner/`, and with the bundle, `winhttp.dll` sits next to `Endless Legend 2.exe`.
+3. **Linux / Steam Deck only:** in Steam, set the game's launch options (Properties > General) to
+
+   ```
+   WINEDLLOVERRIDES="winhttp=n,b" %command%
+   ```
+4. Start the game. When you place a district, the recommended tiles now come from the mod. If nothing changes, look in `BepInEx/LogOutput.log` for `District Planner loaded`. If there's no log file at all, BepInEx isn't running: check step 2, or step 3 on Linux.
+
+To update, extract the new mod-only zip over the old files. To uninstall, delete `BepInEx/plugins/DistrictPlanner`. To remove BepInEx as well, also delete the `BepInEx` folder, `winhttp.dll`, `doorstop_config.ini`, `.doorstop_version` and `changelog.txt`.
+
+Optional: [BepInEx Configuration Manager](https://github.com/BepInEx/BepInEx.ConfigurationManager) (BepInEx 5 build) adds an in-game settings window, see below.
 
 ## Settings
 
